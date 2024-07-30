@@ -1,0 +1,76 @@
+services:
+  mongo1:
+    image: mongo:latest
+    hostname: mongo1
+    container_name: mongo1
+    ports:
+      - 27017:27017
+    entrypoint:
+      [
+        "mongod",
+        "--replSet",
+        "myReplicaSet",
+        "--bind_ip",
+        "localhost,mongo1"
+      ]
+    expose:
+      - "27017"
+    networks:
+      - mongo-network
+
+  mongo2:
+    image: mongo:latest
+    hostname: mongo2
+    container_name: mongo2
+    ports:
+      - 27018:27017
+    expose:
+      - "27017"
+    entrypoint:
+      [
+        "mongod",
+        "--replSet",
+        "myReplicaSet",
+        "--bind_ip",
+        "localhost,mongo2"
+      ]
+    networks:
+      - mongo-network
+
+  mongo3:
+    image: mongo:latest
+    hostname: mongo3
+    container_name: mongo3
+    ports:
+      - 27019:27017
+    expose:
+      - "27017"
+    entrypoint:
+      [
+        "mongod",
+        "--replSet",
+        "myReplicaSet",
+        "--bind_ip",
+        "localhost,mongo3"
+      ]
+    networks:
+      - mongo-network
+
+  mongosetup:
+    image: mongo:latest
+    depends_on:
+      mongo1:
+        condition: service_started
+      mongo2:
+        condition: service_started
+      mongo3:
+        condition: service_started
+    volumes:
+      - ./scripts:/scripts
+    restart: "no"
+    entrypoint: [ "bash", "/scripts/mongo_setup.sh" ]
+    networks:
+      - mongo-network
+networks:
+  mongo-network:
+    driver: bridge
